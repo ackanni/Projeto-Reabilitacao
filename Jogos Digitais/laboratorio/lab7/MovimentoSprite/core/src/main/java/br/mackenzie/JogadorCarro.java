@@ -11,46 +11,46 @@ public class JogadorCarro extends GameObject {
     private Texture texturaParada;
     private Texture texturaMovimento;
     private Viewport viewport;
+    
+    public float velLat = 300f; 
+    public float aceleracaoIoT = 0f; 
 
-    public float lateralSpeed = 300f; // Velocidade do volante
+    public float fundoOffsetX = 0f;
+    public float fundoOffsetY = 0f;
+    private float velocidadeParalaxe = 1f;
 
     public JogadorCarro(Sprite sprite, Texture parada, Texture movimento, Viewport viewport) {
         super(sprite);
         this.texturaParada = parada;
         this.texturaMovimento = movimento;
         this.viewport = viewport;
-        
-        // Fixa o carro na parte inferior da tela, centralizado
-        this.sprite.setY(50);
-        this.sprite.setX((viewport.getWorldWidth() - sprite.getWidth()) / 2f);
+        sprite.setSize(50, 100); 
     }
 
     @Override
     public void update(float delta) {
-        boolean movendo = false;
+        fundoOffsetY -= aceleracaoIoT * delta * velocidadeParalaxe;
 
-        // Controle Lateral (Mãos na dupla tarefa) - Eixo X
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-            sprite.translateX(lateralSpeed * delta);
-            movendo = true;
+            sprite.translateX(velLat * delta);
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            sprite.translateX(-lateralSpeed * delta);
-            movendo = true;
+        else if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+            sprite.translateX(-velLat * delta);
         }
 
-        // Feedback visual
-        if (movendo) {
+        if (aceleracaoIoT > 0) {
             sprite.setTexture(texturaMovimento);
         } else {
             sprite.setTexture(texturaParada);
         }
 
-        // Limita o carro às bordas horizontais da tela
+        //posição do carro vertical e limite da tela
         float worldWidth = viewport.getWorldWidth();
+        float worldHeight = viewport.getWorldHeight();
+        
         sprite.setX(MathUtils.clamp(sprite.getX(), 0, worldWidth - sprite.getWidth()));
+        sprite.setY(50); 
 
-        // Atualiza a Hitbox (mantive a proporção original do seu código)
         float hitboxWidth = sprite.getWidth() * 0.65f;
         float hitboxHeight = sprite.getHeight() * 0.65f;
         hitbox.set(
