@@ -15,10 +15,6 @@ public class JogadorCarro extends GameObject {
     public float velLat = 300f; 
     public float aceleracaoIoT = 0f; 
 
-    public float fundoOffsetX = 0f;
-    public float fundoOffsetY = 0f;
-    private float velocidadeParalaxe = 1f;
-
     public JogadorCarro(Sprite sprite, Texture parada, Texture movimento, Viewport viewport) {
         super(sprite);
         this.texturaParada = parada;
@@ -29,8 +25,6 @@ public class JogadorCarro extends GameObject {
 
     @Override
     public void update(float delta) {
-        fundoOffsetY -= aceleracaoIoT * delta * velocidadeParalaxe;
-
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
             sprite.translateX(velLat * delta);
         }
