@@ -12,53 +12,52 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class Main implements ApplicationListener {
-    SpriteBatch spriteBatch;
-    FitViewport viewport;
+    private SpriteBatch spriteBatch;
+    private FitViewport viewport;
 
-    // Fundo
-    Texture fundo;
-    float fundoOffsetY = 0f;
+    private Estrada pista;
+    private JogadorCarro player;
+    private Array<NpcCarro> npcs;
 
-    // Elementos do Jogo
-    JogadorCarro player;
-    Array<NpcCar> npcs;
-    Texture playerParado;
-    Texture playerMovimento;
-    Texture npcTexture;
+    private Texture fundo;
+    private Texture playerParado;
+    private Texture playerMovimento;
+    private Texture npcTexture;
 
     // IoT e Rampa de Aceleração (Software Ramping)
-    ArduinoReaderThread arduinoReader;
-    float forwardSpeed = 0f;
-    float maxSpeed = 800f;
-    float accelerationRate = 250f; // Ganho de velocidade isométrico
-    float decelerationRate = 150f; // Atrito ao soltar o pedal
-    float brakeRate = 500f;        // Força da frenagem
+    private ArduinoReaderThread arduinoReader;
+    private float forwardSpeed = 0f;
+    private final float MAX_SPEED = 800f;
+    private final float ACCELERATION_RATE = 250f; 
+    private final float DECELERATION_RATE = 150f; 
+    private final float BRAKE_RATE = 500f;        
 
-    // Regras da Fase
-    float spawnTimer = 0f;
-    float distanciaPercorrida = 0f;
-    float distanciaAlvo = 10000f; 
-    float tempoRestante = 90f;    
+    // Regras da Fase e HUD
+    private float spawnTimer = 0f;
+    private float distanciaPercorrida = 0f;
+    private final float DISTANCIA_ALVO = 10000f; 
+    private float tempoRestante = 90f;    
 
     @Override
     public void create() {
         spriteBatch = new SpriteBatch();
         viewport = new FitViewport(480, 800); // Proporção retrato/estrada
 
-        // Carrega as texturas (Ajuste os nomes para os seus arquivos de imagem)
         fundo = new Texture("tela_fundo.jpg"); 
         playerParado = new Texture("carro_parado.png"); 
         playerMovimento = new Texture("carro_movimento.png");
         npcTexture = new Texture("carro_npc.png");
 
-        // Instancia Jogador
+        pista = new Estrada(fundo, viewport);
+
         Sprite playerSprite = new Sprite(playerParado);
         player = new JogadorCarro(playerSprite, playerParado, playerMovimento, viewport);
+        player.getSprite().setX((viewport.getWorldWidth() - playerSprite.getWidth()) / 2f);
         
         npcs = new Array<>();
 
-        // Inicia a comunicação Serial com o ESP32
-        arduinoReader = new ArduinoReaderThread("COM3"); // Ajuste para a porta correta do bluetooth/usb
+        //inicia o arduino
+        arduinoReader = new ArduinoReaderThread("COM3"); 
         arduinoReader.start();
     }
 
@@ -76,18 +75,19 @@ public class Main implements ApplicationListener {
 
     private void input() {
         float delta = Gdx.graphics.getDeltaTime();
-
-        // Leitura contínua do ESP32 para acelerar/frear
         String serialData = arduinoReader.getLastData();
         
-        if (serialData.equals("1")) { // Botão Acelerador pressionado
-            forwardSpeed += accelerationRate * delta;
-            if (forwardSpeed > maxSpeed) forwardSpeed = maxSpeed;
-        } else if (serialData.equals("2")) { // Botão Freio pressionado
-            forwardSpeed -= brakeRate * delta;
+        //le o esp32 
+        if (serialData.equals("1")) { 
+            forwardSpeed += ACCELERATION_RATE * delta;
+            if (forwardSpeed > MAX_SPEED) forwardSpeed = MAX_SPEED;
+            
+        } else if (serialData.equals("2")) {
+            forwardSpeed -= BRAKE_RATE * delta;
             if (forwardSpeed < 0) forwardSpeed = 0;
-        } else { // Pés soltos
-            forwardSpeed -= decelerationRate * delta;
+            
+        } else {
+            forwardSpeed -= DECELERATION_RATE * delta;
             if (forwardSpeed < 0) forwardSpeed = 0;
         }
     }
@@ -95,36 +95,38 @@ public class Main implements ApplicationListener {
     private void logic() {
         float delta = Gdx.graphics.getDeltaTime();
 
-        // 1. Atualiza teclado e limites do carro
+        //movimento do jogador
+        player.aceleracaoIoT = forwardSpeed; 
         player.update(delta);
 
-        // 2. Faz o fundo rolar para baixo baseado na velocidade
-        fundoOffsetY -= forwardSpeed * delta;
+        //move a estrada
+        pista.update(forwardSpeed, delta);
 
-        // 3. Atualiza HUD/Metas da reabilitação
-        if (tempoRestante > 0 && distanciaPercorrida < distanciaAlvo) {
+       
+        if (tempoRestante > 0 && distanciaPercorrida < DISTANCIA_ALVO) {
             tempoRestante -= delta;
             distanciaPercorrida += forwardSpeed * delta;
         }
 
-        // 4. Spawner Dinâmico de Inimigos (Mais rápido = mais inimigos)
+        //spawn dos npcs
         spawnTimer += delta;
-        float tempoSpawn = MathUtils.clamp(1.5f - (forwardSpeed / maxSpeed), 0.5f, 1.5f);
+        float tempoSpawn = MathUtils.clamp(1.5f - (forwardSpeed / MAX_SPEED), 0.5f, 1.5f);
         if (spawnTimer > tempoSpawn && forwardSpeed > 50) {
             spawnTimer = 0f;
             createNpc();
         }
 
-        // 5. Atualiza e checa colisão dos Inimigos
+
+        //verificação de colisão
         for (int i = npcs.size - 1; i >= 0; i--) {
-            NpcCar npc = npcs.get(i);
-            npc.setSpeed(forwardSpeed); // NPC desce na velocidade que o jogador sobe
+            NpcCarro npc = npcs.get(i);
+            
+            npc.setSpeed(forwardSpeed); 
             npc.update(delta);
 
-            // Punição: Se bater, o carro freia bruscamente
             if (player.getHitbox().overlaps(npc.getHitbox())) {
                 forwardSpeed = 0f; 
-                npcs.removeIndex(i);
+                npcs.removeIndex(i); 
             } 
             // Limpeza de memória: Saiu da tela por baixo
             else if (npc.getSprite().getY() + npc.getSprite().getHeight() < 0) {
@@ -135,10 +137,13 @@ public class Main implements ApplicationListener {
 
     private void createNpc() {
         Sprite npcSprite = new Sprite(npcTexture);
+        
+        // Sorteia a posição X aleatória dentro dos limites da pista
         float posX = MathUtils.random(0, viewport.getWorldWidth() - npcSprite.getWidth());
         npcSprite.setPosition(posX, viewport.getWorldHeight()); // Nasce fora da tela no topo
         
-        NpcCar npc = new NpcCar(npcSprite, forwardSpeed);
+        // Cria passando a velocidade atual
+        NpcCarro npc = new NpcCarro(npcSprite, forwardSpeed);
         npcs.add(npc);
     }
 
@@ -149,18 +154,10 @@ public class Main implements ApplicationListener {
 
         spriteBatch.begin();
 
-        // Loop infinito do fundo (Paralaxe Vertical)
-        float worldWidth = viewport.getWorldWidth();
-        float worldHeight = viewport.getWorldHeight();
-        float y1 = fundoOffsetY % worldHeight;
-        if (y1 > 0) y1 -= worldHeight;
-
-        spriteBatch.draw(fundo, 0, y1, worldWidth, worldHeight);
-        spriteBatch.draw(fundo, 0, y1 + worldHeight, worldWidth, worldHeight);
-
-        // Desenha Objetos (Polimorfismo aplicado)
+        // A ordem de desenho importa: o que é desenhado primeiro fica no fundo
+        pista.draw(spriteBatch);
         player.draw(spriteBatch);
-        for (NpcCar npc : npcs) {
+        for (NpcCarro npc : npcs) {
             npc.draw(spriteBatch);
         }
 
@@ -175,12 +172,15 @@ public class Main implements ApplicationListener {
 
     @Override
     public void dispose() {
+        // Encerramento seguro da thread do ESP32
         arduinoReader.stopReading();
         try {
             arduinoReader.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        
+        // Limpeza de memória da placa de vídeo
         spriteBatch.dispose();
         fundo.dispose();
         playerParado.dispose();
