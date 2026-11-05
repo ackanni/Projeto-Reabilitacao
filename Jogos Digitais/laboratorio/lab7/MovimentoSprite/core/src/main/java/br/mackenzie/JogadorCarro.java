@@ -12,7 +12,7 @@ public class JogadorCarro extends GameObject {
     private Texture texturaMovimento;
     private Viewport viewport;
     
-    public float velLat = 300f; 
+    public float velLateral = 300f; 
     public float aceleracaoIoT = 0f; 
 
     public JogadorCarro(Sprite sprite, Texture parada, Texture movimento, Viewport viewport) {
@@ -26,10 +26,10 @@ public class JogadorCarro extends GameObject {
     @Override
     public void update(float delta) {
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-            sprite.translateX(velLat * delta);
+            sprite.translateX(velLateral * delta);
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            sprite.translateX(-velLat * delta);
+            sprite.translateX(-velLateral * delta);
         }
 
         if (aceleracaoIoT > 0) {
@@ -38,9 +38,7 @@ public class JogadorCarro extends GameObject {
             sprite.setTexture(texturaParada);
         }
 
-        //posição do carro vertical e limite da tela
         float worldWidth = viewport.getWorldWidth();
-        float worldHeight = viewport.getWorldHeight();
         
         sprite.setX(MathUtils.clamp(sprite.getX(), 0, worldWidth - sprite.getWidth()));
         sprite.setY(50); 
