@@ -6,9 +6,14 @@ public class NpcCarro extends GameObject {
     public float velInicial = 150f;
     public float velJogador = 0f; 
 
-    public NpcCarro(Sprite sprite){
+    public NpcCarro(Sprite sprite, float velJogadorInicial){
         super(sprite);
         sprite.setSize(50, 100);
+        this.velJogador = velJogadorInicial; 
+    }
+
+    public void setSpeed(float speed) {
+        this.velJogador = speed;
     }
 
     @Override 

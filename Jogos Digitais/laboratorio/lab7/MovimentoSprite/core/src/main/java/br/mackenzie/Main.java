@@ -75,7 +75,7 @@ public class Main implements ApplicationListener {
 
     private void input() {
         float delta = Gdx.graphics.getDeltaTime();
-        String serialData = arduinoReader.getLastData();
+        String serialData = arduinoReader.getLastData().trim();
         
         //le o esp32 
         if (serialData.equals("1")) { 
@@ -128,7 +128,6 @@ public class Main implements ApplicationListener {
                 forwardSpeed = 0f; 
                 npcs.removeIndex(i); 
             } 
-            // Limpeza de memória: Saiu da tela por baixo
             else if (npc.getSprite().getY() + npc.getSprite().getHeight() < 0) {
                 npcs.removeIndex(i); 
             }
@@ -138,11 +137,9 @@ public class Main implements ApplicationListener {
     private void createNpc() {
         Sprite npcSprite = new Sprite(npcTexture);
         
-        // Sorteia a posição X aleatória dentro dos limites da pista
         float posX = MathUtils.random(0, viewport.getWorldWidth() - npcSprite.getWidth());
-        npcSprite.setPosition(posX, viewport.getWorldHeight()); // Nasce fora da tela no topo
+        npcSprite.setPosition(posX, viewport.getWorldHeight()); 
         
-        // Cria passando a velocidade atual
         NpcCarro npc = new NpcCarro(npcSprite, forwardSpeed);
         npcs.add(npc);
     }
@@ -154,7 +151,6 @@ public class Main implements ApplicationListener {
 
         spriteBatch.begin();
 
-        // A ordem de desenho importa: o que é desenhado primeiro fica no fundo
         pista.draw(spriteBatch);
         player.draw(spriteBatch);
         for (NpcCarro npc : npcs) {
@@ -172,7 +168,7 @@ public class Main implements ApplicationListener {
 
     @Override
     public void dispose() {
-        // Encerramento seguro da thread do ESP32
+        //encerra a thread do esp32
         arduinoReader.stopReading();
         try {
             arduinoReader.join();
@@ -180,7 +176,6 @@ public class Main implements ApplicationListener {
             e.printStackTrace();
         }
         
-        // Limpeza de memória da placa de vídeo
         spriteBatch.dispose();
         fundo.dispose();
         playerParado.dispose();
