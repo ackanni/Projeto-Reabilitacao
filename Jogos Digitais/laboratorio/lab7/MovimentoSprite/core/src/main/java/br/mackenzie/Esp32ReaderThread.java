@@ -3,26 +3,26 @@ package br.mackenzie;
 import com.fazecast.jSerialComm.SerialPort;
 import java.io.InputStream;
 
-public class ArduinoReaderThread extends Thread {
+public class Esp32ReaderThread extends Thread {
     
-    // A palavra-chave 'volatile' garante que o valor seja visível
-    // para todas as threads, garantindo a comunicação segura.
-    private volatile String lastData = "Nenhum dado";
-    private SerialPort arduinoPort;
+    private volatile String lastData = "0"; 
+    private SerialPort esp32Port;
 
-    public ArduinoReaderThread(String portName) {
-        this.arduinoPort = SerialPort.getCommPort(portName);
+    public Esp32ReaderThread(String portName) {
+        this.esp32Port = SerialPort.getCommPort(portName);
     }
 
     @Override
     public void run() {
-        if (!arduinoPort.openPort()) {
-            System.err.println("Erro: Não foi possível abrir a porta serial.");
+        if (!esp32Port.openPort()) {
+            System.err.println("Erro: Não foi possível abrir a porta serial " + esp32Port.getSystemPortName());
             return;
         }
 
-        arduinoPort.setBaudRate(9600);
-        InputStream in = arduinoPort.getInputStream();
+        esp32Port.setBaudRate(9600);
+        esp32Port.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 0, 0); 
+        
+        InputStream in = esp32Port.getInputStream();
         StringBuilder currentLine = new StringBuilder();
 
         try {
@@ -32,7 +32,6 @@ public class ArduinoReaderThread extends Thread {
                     currentLine.append(character);
 
                     if (character == '\n') {
-                        // Armazena a linha completa no shared variable
                         lastData = currentLine.toString().trim();
                         currentLine.setLength(0);
                     }
@@ -42,8 +41,8 @@ public class ArduinoReaderThread extends Thread {
         } catch (Exception e) {
             System.err.println("Erro na leitura serial: " + e.getMessage());
         } finally {
-            if (arduinoPort.isOpen()) {
-                arduinoPort.closePort();
+            if (esp32Port.isOpen()) {
+                esp32Port.closePort();
                 System.out.println("Porta serial fechada.");
             }
         }
