@@ -25,7 +25,7 @@ public class Main implements ApplicationListener {
     private Texture npcTexture;
 
     // IoT e Rampa de Aceleração (Software Ramping)
-    private ArduinoReaderThread arduinoReader;
+    private Esp32ReaderThread leitorEsp32;
     private float forwardSpeed = 0f;
     private final float MAX_SPEED = 800f;
     private final float ACCELERATION_RATE = 250f; 
@@ -56,9 +56,8 @@ public class Main implements ApplicationListener {
         
         npcs = new Array<>();
 
-        //inicia o arduino
-        arduinoReader = new ArduinoReaderThread("COM3"); 
-        arduinoReader.start();
+        leitorEsp32 = new Esp32ReaderThread("COM3");
+        leitorEsp32.start();
     }
 
     @Override
@@ -75,7 +74,7 @@ public class Main implements ApplicationListener {
 
     private void input() {
         float delta = Gdx.graphics.getDeltaTime();
-        String serialData = arduinoReader.getLastData().trim();
+        String serialData = leitorEsp32.getLastData().trim();
         
         //le o esp32 
         if (serialData.equals("1")) { 
@@ -169,9 +168,9 @@ public class Main implements ApplicationListener {
     @Override
     public void dispose() {
         //encerra a thread do esp32
-        arduinoReader.stopReading();
+        leitorEsp32.stopReading();
         try {
-            arduinoReader.join();
+            leitorEsp32.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
