@@ -41,12 +41,12 @@ public class Main implements ApplicationListener {
     @Override
     public void create() {
         spriteBatch = new SpriteBatch();
-        viewport = new FitViewport(480, 800); // Proporção retrato/estrada
+        viewport = new FitViewport(480, 800); 
 
-        fundo = new Texture("tela_fundo.jpg"); 
-        playerParado = new Texture("carro_parado.png"); 
-        playerMovimento = new Texture("carro_movimento.png");
-        npcTexture = new Texture("carro_npc.png");
+        fundo = new Texture("california.jpg"); //sprite fase 1
+        playerParado = new Texture("YellowCarFreio.png"); 
+        playerMovimento = new Texture("YellowCar.png");
+        npcTexture = new Texture("YellowCarFreio.png"); //trocar a sprite para a do NPC
 
         pista = new Estrada(fundo, viewport);
 
