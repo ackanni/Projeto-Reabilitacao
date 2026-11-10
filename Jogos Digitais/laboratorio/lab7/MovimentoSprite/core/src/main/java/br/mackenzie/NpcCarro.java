@@ -8,7 +8,6 @@ public class NpcCarro extends GameObject {
 
     public NpcCarro(Sprite sprite, float velJogadorInicial){
         super(sprite);
-        sprite.setSize(50, 100);
         this.velJogador = velJogadorInicial; 
     }
 
