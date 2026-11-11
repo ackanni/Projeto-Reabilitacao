@@ -20,7 +20,7 @@ public class Main implements ApplicationListener {
     }
     private EstadoJogo estado = EstadoJogo.CONTAGEM_REGRESSIVA;
 
-    private static final String[] FUNDOS_FASES = { "california.jpg", "fase2.jpg", "fase3.jpg" };
+    private static final String[] FUNDOS_FASES = { "fase1.jpg", "fase2.jpg", "fase3.jpg" };
     private static final float[] META_METROS   = { 3000f, 4000f, 5000f };
     private static final int TOTAL_FASES = FUNDOS_FASES.length;
 
@@ -87,7 +87,7 @@ public class Main implements ApplicationListener {
         carregarFundos();
         playerFreio = new Texture("YellowCarFreio.png");
         playerNormal = new Texture("YellowCar.png");
-        npcTexture = new Texture("YellowCarFreio.png");
+        npcTexture = new Texture("RedCar.png");
 
         soundtrack = Gdx.audio.newMusic(Gdx.files.internal("musica_fundo.mp3"));
         soundtrack.setVolume(0.2f); 
