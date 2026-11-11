@@ -3,6 +3,7 @@ package br.mackenzie;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
@@ -74,6 +75,9 @@ public class Main implements ApplicationListener {
     private float contagemRestante = 0f;
     private float jaRestante = 0f;
 
+    private Music soundtrack;
+
+
     @Override
     public void create() {
         spriteBatch = new SpriteBatch();
@@ -84,6 +88,11 @@ public class Main implements ApplicationListener {
         playerFreio = new Texture("YellowCarFreio.png");
         playerNormal = new Texture("YellowCar.png");
         npcTexture = new Texture("YellowCarFreio.png");
+
+        soundtrack = Gdx.audio.newMusic(Gdx.files.internal("musica_fundo.mp3"));
+        soundtrack.setVolume(0.2f); 
+        soundtrack.setLooping(true); 
+        soundtrack.play();
 
         pista = new Estrada(texturasFases[0], viewport);
 
@@ -398,5 +407,6 @@ public class Main implements ApplicationListener {
         playerFreio.dispose();
         playerNormal.dispose();
         npcTexture.dispose();
+        soundtrack.dispose();
     }
 }
